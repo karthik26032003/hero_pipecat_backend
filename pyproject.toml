@@ -1,0 +1,21 @@
+[project]
+name = "venkanna-backend"
+version = "1.0.0"
+description = "Sri Venkanna Hero — LEELAVATI outbound calling bot"
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "pipecat-ai[openai,sarvam,silero,soundfile]",
+    "pipecat-vobiz",
+    "aiohttp",
+    "python-dotenv",
+    "loguru",
+    "httpx",
+    "asyncpg",
+    "python-multipart",
+]
+
+[tool.uv]
+prerelease = "allow"
