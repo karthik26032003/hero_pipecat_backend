@@ -8,7 +8,7 @@ import httpx
 from fastapi import FastAPI, HTTPException, Query, Request, WebSocket
 from whatsapp.router import router as whatsapp_router
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
 from loguru import logger as _logger
 from pydantic import BaseModel
 
@@ -195,7 +195,10 @@ async def websocket_endpoint(
 
     except Exception as e:
         _logger.error(f"[{call_uuid}] Bot error: {e}")
-        await websocket.close()
+        try:
+            await websocket.close()
+        except Exception:
+            pass
 
     finally:
         await update_call_ended(call_uuid)
@@ -255,6 +258,51 @@ async def recording_ready(request: Request) -> HTMLResponse:
             await update_call_recording(call_uuid, recording_url)
 
     return HTMLResponse(content="<Response></Response>", media_type="application/xml")
+
+
+# ── Recording serve ────────────────────────────────────────────────────────────
+
+@app.get("/recordings/{call_uuid}")
+async def get_recording(call_uuid: str):
+    local_path = os.path.join(_RECORDINGS_DIR, f"{call_uuid}.mp3")
+    if os.path.exists(local_path):
+        return FileResponse(local_path, media_type="audio/mpeg", filename=f"{call_uuid}.mp3")
+
+    # Fallback: proxy from VoBiz using URL stored in DB
+    from helpers.db import get_call, update_call_recording
+    call = await get_call(call_uuid)
+    recording_url = call.get("recording_url") if call else None
+    if not recording_url or recording_url.startswith("/recordings/"):
+        # Try VoBiz Recording API
+        auth_id    = os.getenv("VOBIZ_AUTH_ID",    "")
+        auth_token = os.getenv("VOBIZ_AUTH_TOKEN", "")
+        api_url    = f"https://api.vobiz.ai/api/v1/Account/{auth_id}/Recording/?call_uuid={call_uuid}"
+        async with httpx.AsyncClient() as client:
+            r = await client.get(api_url, headers={"X-Auth-ID": auth_id, "X-Auth-Token": auth_token}, timeout=30)
+        if r.status_code == 200:
+            objects = r.json().get("objects") or []
+            if objects:
+                recording_url = objects[0].get("record_url") or objects[0].get("recording_url") or objects[0].get("url")
+
+    if not recording_url:
+        raise HTTPException(status_code=404, detail="Recording not found")
+
+    auth_id    = os.getenv("VOBIZ_AUTH_ID",    "")
+    auth_token = os.getenv("VOBIZ_AUTH_TOKEN", "")
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            recording_url,
+            headers={"X-Auth-ID": auth_id, "X-Auth-Token": auth_token},
+            follow_redirects=True,
+            timeout=60,
+        )
+    if resp.status_code != 200:
+        raise HTTPException(status_code=502, detail="Could not fetch recording")
+    return StreamingResponse(
+        iter([resp.content]),
+        media_type="audio/mpeg",
+        headers={"Content-Disposition": f"inline; filename={call_uuid}.mp3"},
+    )
 
 
 # ── Logs API ───────────────────────────────────────────────────────────────────

@@ -101,13 +101,16 @@ async def insert_transcript(call_uuid: str, turns: list[dict]):
 async def get_calls():
     async with _pool.acquire() as conn:
         rows = await conn.fetch("""
-            SELECT *,
+            SELECT c.*,
                 CASE
-                    WHEN ended_at IS NOT NULL
-                    THEN EXTRACT(EPOCH FROM (ended_at - created_at))::INTEGER
-                END AS duration_seconds
-            FROM venkanna_calls
-            ORDER BY created_at DESC
+                    WHEN c.ended_at IS NOT NULL
+                    THEN EXTRACT(EPOCH FROM (c.ended_at - c.created_at))::INTEGER
+                END AS duration_seconds,
+                EXISTS(
+                    SELECT 1 FROM venkanna_transcripts t WHERE t.call_uuid = c.call_uuid
+                ) AS has_transcript
+            FROM venkanna_calls c
+            ORDER BY c.created_at DESC
         """)
         return [_row(r) for r in rows]
 
