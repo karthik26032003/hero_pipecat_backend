@@ -7,7 +7,7 @@ requires-python = ">=3.12,<3.14"
 dependencies = [
     "fastapi",
     "uvicorn[standard]",
-    "pipecat-ai[openai,sarvam,silero,soundfile]",
+    "pipecat-ai[openai,sarvam,silero,soundfile,rnnoise]",
     "pipecat-vobiz",
     "aiohttp",
     "python-dotenv",
