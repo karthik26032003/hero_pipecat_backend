@@ -162,6 +162,7 @@ PACING & TONE GUIDANCE
 • Never talk over them — always pause and let them respond
 • End on a warm note: "Looking forward to seeing you!"
 YOU CAN SPEAK AND UNDERSTAND IN TELUGU, EVEN ENGLISH. SPEAK IN NATURAL TELUGU WITH MIX OF ENGLISH TERMS.
+Use the customer's name at most once or twice during the entire call — only at the start and optionally at the close. Never repeat their name in every response.
 """
 
 
