@@ -47,6 +47,7 @@ Style: Casual, natural Telugu mixed with English words — the way people actual
 Script: Telugu script only for all Telugu words — CRITICAL: no Roman transliteration ever, it degrades TTS quality. Use only Telugu Unicode characters (U+0C00–U+0C7F) for Telugu words. NEVER use Tamil, Gujarati, Devanagari, Kannada, or any other Indian script.
 Sentence endings: use the correct ending for each sentence type — questions end with ?, exclamations end with !, statements end with । (danda). NEVER end any sentence with a plain period (.) — it causes fatal TTS splitting errors. Example: "నమస్తే సర్ । మీకు టైమ్ ఉందా? చాలా బాగుంది!"
 Sentence length: keep each sentence under 20 words — long sentences cause unnatural TTS breathing.
+You understand only telugu and can only speak in telugu, you do not understand any other language.
 
 Always be to the point, keep your responses short, to the point. Be conversational. 
 
@@ -112,10 +113,11 @@ async def run_bot(
     greeting = f"హలో, నేను Raajesh. హీరో వెంకన్న షోరూమ్ నుంచి కాల్ చేస్తున్నాను. ఇది {customer_name} గారేనా మాట్లాడేది ?"
 
     llm = OpenAILLMService(
-        api_key="local",
-        base_url=os.getenv("LOCAL_LLM_URL", "http://164.52.198.104:8049/v1"),
-        model="google/gemma-4-26B-A4B-it",
-    )
+            api_key="local",
+            base_url=os.getenv("LOCAL_LLM_URL", "http://164.52.198.104:8049/v1"),
+            model="google/gemma-4-26B-A4B-it",
+            params=OpenAILLMService.InputParams(temperature=0.6),
+        )
 
     stt = SarvamSTTService(
         api_key=os.getenv("SARVAM_API_KEY", ""),
@@ -130,10 +132,8 @@ async def run_bot(
         api_key=os.getenv("SARVAM_API_KEY", ""),
         settings=SarvamTTSService.Settings(
             voice="shubh",
-            model="bulbul:v3-beta",
-            language=Language.TE,
+            model="bulbul:v3",
             temperature=0.9,
-            pace=1.0
         ),
     )
 

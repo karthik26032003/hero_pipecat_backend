@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 import aiohttp
 import httpx
 from fastapi import FastAPI, HTTPException, Query, Request, WebSocket
-from whatsapp.router import router as whatsapp_router
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
 from loguru import logger as _logger
@@ -46,7 +45,6 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Sri Venkanna Hero Bot", version="1.0.0", lifespan=lifespan)
-app.include_router(whatsapp_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -206,20 +204,6 @@ async def websocket_endpoint(
             await insert_transcript(call_uuid, transcript)
             _logger.info(f"[{call_uuid}] Transcript saved — {len(transcript)} turns")
 
-        try:
-            from whatsapp.client import send_template_message
-            await send_template_message(
-                to=to_number,
-                template_name=os.getenv("WHATSAPP_TEMPLATE_NAME", ""),
-                components=[{
-                    "type": "body",
-                    "parameters": [{"type": "text", "text": customer_name or "Customer"}],
-                }],
-            )
-            from helpers.db import mark_whatsapp_sent
-            await mark_whatsapp_sent(call_uuid)
-        except Exception as e:
-            _logger.error(f"[{call_uuid}] WhatsApp send failed: {e}")
 
 
 # ── Recording callback ─────────────────────────────────────────────────────────
