@@ -87,6 +87,7 @@ HERO MOTORCORP MODELS (Know all of these; tailor to customer interest):
     • XF3W — Extra-wide features, comfort-focused
     • Destini 125 — Scooter alternative, comfort + convenience
     • Glamour — Casual everyday ride
+    - zoom 125 -  Good + comfort +efficient vechile.
   
   Premium (Performance):
     • Karizma / Karizma XMR — High-end performance
